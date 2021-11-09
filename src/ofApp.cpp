@@ -25,6 +25,8 @@ void ofApp::draw() {
         boxes[i].draw();
     }
 	cpoint[0].draw();
+	ofDrawBitmapString("hold 'p' - set up point position",0,10);
+	ofDrawBitmapString("hold 'g' - turn on gravity", 0, 20);
 }
 
 //--------------------------------------------------------------
@@ -85,7 +87,7 @@ box::~box() {
 //--------------------------------------------------------------
 void box::gravity()
 {
-	if (y < 720) {//grawitacja
+	if (y < ofGetHeight()) {//grawitacja
 		vy = vy + (g * m);
 	}
 }
@@ -147,9 +149,9 @@ void box::wobble() {
 			vy = 0;
 		}
 
-		if (x > 1280 - r) {
+		if (x > ofGetWidth() - r) {
 			vx = -vx;
-			x = 1280 - r;
+			x = ofGetWidth() - r;
 		}
 
 		if (x <= 0) {
@@ -157,9 +159,9 @@ void box::wobble() {
 			x = 0;
 		}
 
-		if (y >= 720 - r) {
+		if (y >= ofGetHeight() - r) {
 			vy = -vy;
-			y = 720 - r;
+			y = ofGetHeight() - r;
 		}
 
 		if (y < r) {
