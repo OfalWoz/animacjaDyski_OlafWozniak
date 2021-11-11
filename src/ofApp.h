@@ -7,23 +7,32 @@ public:
     int r;
     float x;// pozycja
     float y;
-    float vx;// predkosc
-    float vy;
+    float vx = 0;// predkosc
+    float vy = 0;
     float m;//masa
     float cx;//punkt srodkowy
     float cy;
     float c;//sila punktu c
     const float g = 0.1;//grawitacja
-    const float G = 6.673 * pow(10,-1);
-    const float M = 5; //masa punktu c
+    const float G = 6.673 * pow(10, 1);
+    const float M = 2; //masa punktu c
     float my = 0;
     float mx = 0;
     float D; //sila opory
+    float dt = (ofGetElapsedTimef()) * 0.9;
+    float deltax, deltay;
+    float R; //odleglosc miedzy pkt c a dyskiem
+    float T; //czas w jakim dysk doleci do punktu
+    float A; //przyspieszenie dysku
+    float F; //sila dysku zmierzajac do c
+
     ofColor color;
     void draw();
     void wobble();
     void gravity();
-    void cpoint();
+    void cpoint(int i);
+    void gpoint(int i);
+    void stop();
     box(); //consturctor
     ~box(); //destructor
 };

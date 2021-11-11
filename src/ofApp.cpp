@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup() {
     int maxBoxes;
-    maxBoxes = 100;
+    maxBoxes = 1000;
     for (int i = 0; i < maxBoxes; i++) {
         box newBox;
         boxes.push_back(newBox);
@@ -25,8 +25,10 @@ void ofApp::draw() {
         boxes[i].draw();
     }
 	cpoint[0].draw();
-	ofDrawBitmapString("hold 'p' - set up point position",0,10);
-	ofDrawBitmapString("hold 'g' - turn on gravity", 0, 20);
+	ofDrawBitmapString("hold 's' - stop movement", 0, 10);
+	ofDrawBitmapString("hold 'p' - set up point position",0,20);
+	ofDrawBitmapString("hold 'g' - turn on gravity", 0, 30);
+	ofDrawBitmapString("hold 'k' - gravitional pull on point", 0, 40);
 }
 
 //--------------------------------------------------------------
@@ -41,8 +43,7 @@ void ofApp::keyPressed(int key) {
 			boxes[i].cy = cursorPos.y;
 			cpoint[0].cx = cursorPos.x;
 			cpoint[0].cy = cursorPos.y;
-			boxes[i].cpoint();
-			
+			boxes[i].cpoint(i);
 		}
 		break;
 	case 'g': //wlaczenie grawitacji
@@ -50,9 +51,23 @@ void ofApp::keyPressed(int key) {
 			boxes[i].gravity();
 		}
 		break;
+	case'k': //wlaczenie i zmiana polozenia punktu
+		for (int i = 0; i < boxes.size(); i++) {
+			POINT cursorPos;
+			GetCursorPos(&cursorPos);
+			boxes[i].cx = cursorPos.x;
+			boxes[i].cy = cursorPos.y;
+			cpoint[0].cx = cursorPos.x;
+			cpoint[0].cy = cursorPos.y;
+			boxes[i].gpoint(i);
+		}
+		break;
+	case's': //wlaczenie i zmiana polozenia punktu
+		for (int i = 0; i < boxes.size(); i++) {
+			boxes[i].stop();
+		}
+		break;
 	}
-	
-
 }
 
 //--------------------------------------------------------------
@@ -60,6 +75,12 @@ void ofApp::keyReleased(int key) {
 	switch (key)
 	{
 	case'p': //wlaczenie i zmiana polozenia punktu
+		for (int i = 0; i < boxes.size(); i++) {
+			cpoint[0].cx = -10;
+			cpoint[0].cy = -10;
+		}
+		break;
+	case'k': //wlaczenie i zmiana polozenia punktu
 		for (int i = 0; i < boxes.size(); i++) {
 			cpoint[0].cx = -10;
 			cpoint[0].cy = -10;
@@ -87,27 +108,89 @@ box::~box() {
 //--------------------------------------------------------------
 void box::gravity()
 {
-	if (y < ofGetHeight()) {//grawitacja
-		vy = vy + (g * m);
+	if (y < ofGetHeight()) {
+		//grawitacja
+		vy = vy + (g * m) * dt;
 	}
 }
 //--------------------------------------------------------------
-void box::cpoint()
+void box::cpoint(int i)
 {
-	if (y < cy) {
-		vy = vy - c * (-5);
-	}
-
-	if (x < cx) {
-		vx = vx - c * (-5);
-	}
-
-	if (y > cy) {
-		vy = vy + c * (-5);
-	}
-
 	if (x > cx) {
-		vx = vx + c * (-5);
+		deltax = x - cx;
+	}
+	else {
+		deltax = cx - x;
+	}
+	if (y > cy) {
+		deltay = y - cy;
+	}
+	else {
+		deltay = cy - y;
+	}
+	R = sqrt(pow(deltay, 2) + pow(deltax, 2));
+	T = vy / R;
+	A = vy / T;
+	F = (A * m);
+	c = 0.0001/pow(R,-2);
+	//std::cout << F <<" "<<i<< "\n";
+	if (y <= cy) {
+		vy = vy + c * dt;
+	}
+	
+	if (x <= cx) {
+		vx = vx + c * dt;
+	}
+
+	if (y >= cy) {
+		vy = vy - c * dt;
+	}
+
+	if (x >= cx) {
+		vx = vx - c * dt;
+	}
+}
+
+void box::stop()
+{
+	vy = 0;
+	vx = 0;
+}
+
+void box::gpoint(int i)
+{
+	if (x > cx) {
+		deltax = x - cx;
+	}
+	else {
+		deltax = cx - x;
+	}
+	if (y > cy) {
+		deltay = y - cy;
+	}
+	else {
+		deltay = cy - y;
+	}
+	R = sqrt(pow(deltay, 2) + pow(deltax, 2));
+	T = vy / R;
+	A = vy / T;
+	F = (A * m);
+	c = (G * m * M) / pow(R, 2);
+	//std::cout << F <<" "<<i<< "\n";
+	if (y <= cy) {
+		vy = vy + c * dt;
+	}
+
+	if (x <= cx) {
+		vx = vx + c * dt;
+	}
+
+	if (y >= cy) {
+		vy = vy - c * dt;
+	}
+
+	if (x >= cx) {
+		vx = vx - c * dt;
 	}
 }
 //--------------------------------------------------------------
@@ -118,27 +201,27 @@ void box::draw() {
 
 //--------------------------------------------------------------
 void box::wobble() {
-		c = (G * m * M) / pow(r,2);
+		
 		//sprawdzanie pozycji i obijanie od scianek
-		//D = -6 * 3.14 * (vx + vy) * r;
+		D = -(6 * 3.14 * 0.00001554 * (vx + vy) * r);
 		//std::cout << c << "\n";
-		x = x + vx * 0.5;
-		y = y + vy * 0.5;
+		x = x + vx * dt;
+		y = y + vy * dt;
 
 		if (vy < 0) {
-			vy = vy + 0.1;
+			vy = vy + D * dt;
 		}
 
 		if (vy > 0) {
-			vy = vy - 0.1;
+			vy = vy + D * dt;
 		}
 
 		if (vx < 0) {
-			vx = vx + 0.1;
+			vx = vx + D * dt;
 		}
 
 		if (vx > 0) {
-			vx = vx - 0.1;
+			vx = vx + D * dt;
 		}
 
 		if (vx == 0) {
@@ -154,9 +237,9 @@ void box::wobble() {
 			x = ofGetWidth() - r;
 		}
 
-		if (x <= 0) {
+		if (x <= r) {
 			vx = -vx;
-			x = 0;
+			x = r;
 		}
 
 		if (y >= ofGetHeight() - r) {
